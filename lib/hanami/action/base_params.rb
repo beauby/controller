@@ -7,13 +7,19 @@ module Hanami
       # The key that returns raw input from the Rack env
       #
       # @since 0.7.0
-      RACK_INPUT    = 'rack.input'.freeze
+      RACK_INPUT         = 'rack.input'.freeze
 
-      # The key that returns router params from the Rack env
+      # The key that returns router path params from the Rack env
       # This is a builtin integration for Hanami::Router
       #
       # @since 0.7.0
-      ROUTER_PARAMS = 'router.params'.freeze
+      ROUTER_PATH_PARAMS = 'router.path_params'.freeze
+
+      # The key that returns parsed body params from the Rack env
+      # This is a builtin integration for Hanami::Router
+      #
+      # @since x.x.x
+      ROUTER_PARSED_BODY = 'router.parsed_body'.freeze
 
       # @attr_reader env [Hash] the Rack env
       #
@@ -143,7 +149,18 @@ module Hanami
       # @since 0.7.0
       # @api private
       def _router_params(fallback = {})
-        env.fetch(ROUTER_PARAMS, fallback)
+        body_params = _symbolize(env.fetch(ROUTER_PARSED_BODY, {}))
+        env.fetch(ROUTER_PATH_PARAMS, fallback).merge(body_params)
+      end
+
+      # @since x.x.x
+      # @api private
+      def _symbolize(hash)
+        if hash.is_a?(Hash)
+          Utils::Hash.new(hash).deep_dup.symbolize!.to_h
+        else
+          { '_' => hash }
+        end
       end
     end
   end
